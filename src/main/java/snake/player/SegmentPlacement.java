@@ -7,8 +7,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class SegmentPlacement {
 
+    //width
     private final int x;
 
+    //height
     private final int y;
 
 

@@ -6,13 +6,18 @@ import com.googlecode.lanterna.terminal.Terminal;
 import com.googlecode.lanterna.terminal.swing.SwingTerminal;
 import snake.player.CurrentState;
 import snake.player.Direction;
+import snake.player.SegmentPlacement;
 
 import java.io.*;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GameField {
 
+    //30
     private static int fieldWidth;
 
+    //10
     private static int fieldHeight;
 
     private static SwingTerminal terminal;
@@ -21,16 +26,27 @@ public class GameField {
 
     private CurrentState currentState;
 
-    public GameField(int width, int height) {
-        this.fieldWidth = width;
-        this.fieldHeight = height;
-        createField();
+    private Snake snake;
+
+    private Elements elements;
+
+    private ArrayList<String> field;
+
+    private HashSet<SegmentPlacement> walls;
+
+
+    private GameField(String fieldFileName) {
+
+        walls = new HashSet<>();
+        field = new ArrayList<>();
+        constructField(fieldFileName);
+
     }
 
-    private void createField() {
+    private void createGuiScreen() {
 
+        elements = new Elements();
         terminal = new SwingTerminal(fieldWidth, fieldHeight);
-
         screen = new Screen(terminal);
         //   screen.setCursorPosition(null);
         screen.startScreen();
@@ -56,40 +72,58 @@ public class GameField {
         return terminal.readInput();
     }
 
-    public void constructField(String fileName) {
-        File file = new File(
 
-                getClass().getClassLoader().getResource("Field1.txt").getFile()
+    private File accessFile(String fileName) {
+        return new File(
+
+                Objects.requireNonNull(getClass().getClassLoader().getResource(fileName)).getFile()
 
         );
 
+    }
 
-        try {
-            FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            StringBuffer sb = new StringBuffer();
+    private void markWalls(String line, int currHeight) {
+        int widthCounter = 0;
+        String[] splitStr = line.split("");
+        for (String ch : splitStr) {
+
+            if (ch.equals(Elements.wallElement)) {
+                walls.add(new SegmentPlacement(widthCounter, currHeight));
+            }
+            widthCounter++;
+        }
+
+    }
 
 
-            String yMax = br.readLine();
-            String xMax = br.readLine();
+    private void constructField(String fileName) {
+
+        try (BufferedReader br = new BufferedReader(new FileReader(accessFile(fileName)))) {
+
+            //StringBuffer sb = new StringBuffer();
+
+            fieldWidth = Integer.parseInt(br.readLine());
+            fieldHeight = Integer.parseInt(br.readLine());
+
+            createGuiScreen();
+
             String line;
-            int x = 20;
-            int y = 1;
+            int heightCounter = 0;
+
             while ((line = br.readLine()) != null) {
-
-
-                // String line=br.readLine();
-                System.out.println(line);
-                //screen.putString(10,30," " , null,null);
-
-                drawString(x, y++, line, Terminal.Color.CYAN);
+                markWalls(line, heightCounter);
+                field.add(line);
+                drawString(0, heightCounter++, line, Terminal.Color.CYAN);
             }
 
+            for (String str : field) {
+                System.out.println(str);
+            }
+
+            //   screen.readInput();
+            findSnakePlacement();
             screen.refresh();
-            screen.readInput();
-            screen.refresh();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -99,13 +133,48 @@ public class GameField {
         screen.putString(x, y, string, color, null);
     }
 
+    private boolean isWall(int x, int y) {
+        return walls.contains(new SegmentPlacement(x, y));
+    }
 
-    public static void main(String args[]) {
+    private void findSnakePlacement() {
+        //SegmentPlacement start = snake.getBody().getLast();
+        int snakeHeight;
+        int snakeWidth;
 
-        String filename = "Field1.txt";
+        do {
+            snakeHeight = ThreadLocalRandom.current().nextInt(0, fieldHeight);
+            snakeWidth = ThreadLocalRandom.current().nextInt(0, fieldWidth);
+        } while (isWall(snakeWidth, snakeHeight) || isWall(snakeWidth + 1, snakeHeight) || isWall(snakeWidth + 2, snakeHeight));
 
-        GameField field = new GameField(80, 30);
-        field.constructField(filename);
+        createSnake(snakeHeight, snakeWidth);
+
+    }
+
+    private void createSnake(int snakeHeight, int snakeWidth) {
+
+        LinkedList<SegmentPlacement> body = new LinkedList<>();
+
+        for (int i = 0; i < Snake.getSnakeInitialSize(); i++) {
+            body.add(new SegmentPlacement(i + snakeWidth, snakeHeight));
+        }
+
+        snake = Snake.builder().fieldWidth(fieldWidth).fieldHeight(fieldHeight).body(body).dead(false)
+                .direction(Direction.values()[new Random().nextInt(Direction.values().length)]).build();
+
+        for (SegmentPlacement sp : snake.getBody()) {
+            drawString(sp.getX(), sp.getY(), elements.getSnakeElement(), Terminal.Color.BLUE);
+        }
+
+    }
+
+    public static void main(String[] args) {
+
+        //String filename = "Field1.txt";
+        String filename2 = "FieldWalls.txt";
+
+        GameField field = new GameField(filename2);
+
 
     }
 }

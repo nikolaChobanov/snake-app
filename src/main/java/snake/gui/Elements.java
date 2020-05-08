@@ -1,17 +1,24 @@
 package snake.gui;
 
 import lombok.Data;
+import lombok.Getter;
 
 @Data
-public class Elements {
+@Getter
+class Elements {
 
     private final static String snakeElement = "*";
 
-    private final static String wallElement = "#";
+    final static String wallElement = "#";
 
-    private final static String apple = "0";
+    private final static String apple = "o";
 
-    private final static String pear = "3";
+    private final static String pear = "d";
+
+    private final static String grass = " ";
 
 
+    String getSnakeElement() {
+        return snakeElement;
+    }
 }
