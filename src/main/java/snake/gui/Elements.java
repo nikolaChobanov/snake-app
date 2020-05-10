@@ -11,11 +11,11 @@ class Elements {
 
     final static String wallElement = "#";
 
-    private final static String apple = "o";
+    final static String apple = "o";
 
     private final static String pear = "d";
 
-    private final static String grass = " ";
+    private final  String grass = " ";
 
 
     String getSnakeElement() {
