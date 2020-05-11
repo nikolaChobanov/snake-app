@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Data
 @AllArgsConstructor
-public class SegmentPlacement {
+public class SnakeSegment {
 
     //width
     private final int x;
@@ -15,8 +15,10 @@ public class SegmentPlacement {
     //height
     private final int y;
 
+  //  private Direction direction;
 
-    public SegmentPlacement(int heightLowerBound, int heightUpperBound, int widthLowerBound, int widthUpperBound){
+
+    public SnakeSegment(int heightLowerBound, int heightUpperBound, int widthLowerBound, int widthUpperBound){
 
         this.x= ThreadLocalRandom.current().nextInt(widthLowerBound, widthUpperBound);
         this.y=ThreadLocalRandom.current().nextInt(heightLowerBound, heightUpperBound);

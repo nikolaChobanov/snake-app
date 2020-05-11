@@ -2,38 +2,30 @@ package snake.gui;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import snake.player.SegmentPlacement;
+import snake.player.SnakeSegment;
 
 @Data
 @NoArgsConstructor
- class GenerateFruit {
+class GenerateFruit {
 
 
-    private SegmentPlacement fruit;
+    private SnakeSegment fruitPlacement;
 
-  // private SegmentPlacement pear;
+    private Fruit currentFruitType;
 
-    final  String appleSign = "o";
+    private int appleCounter = 0;
 
-    private final String pearSign = "d";
+    private static final int PEAR_TIME_COUNT = 2;
 
-    private int appleCounter=0;
+    boolean pearTime() {
 
-    private static final int PEAR_TIME_COUNT=5;
-
-     boolean pearTime(){
-
-        if(appleCounter<PEAR_TIME_COUNT){
+        if (appleCounter < PEAR_TIME_COUNT) {
             appleCounter++;
             return false;
         }
 
-        appleCounter=0;
+        appleCounter = 0;
         return true;
     }
-/*
-    private SegmentPlacement spawnFruit(int lowerBound, int upperBound){
 
-
-    }*/
 }
