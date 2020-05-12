@@ -2,14 +2,13 @@ package snake.gui;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import snake.player.SnakeSegment;
 
 @Data
 @NoArgsConstructor
 class GenerateFruit {
 
 
-    private SnakeSegment fruitPlacement;
+    private SegmentPlacement fruitPlacement;
 
     private Fruit currentFruitType;
 

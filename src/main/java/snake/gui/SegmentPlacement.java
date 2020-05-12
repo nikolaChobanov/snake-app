@@ -1,4 +1,4 @@
-package snake.player;
+package snake.gui;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Data
 @AllArgsConstructor
-public class SnakeSegment {
+class SegmentPlacement {
 
     //width
     private final int x;
@@ -15,15 +15,11 @@ public class SnakeSegment {
     //height
     private final int y;
 
-  //  private Direction direction;
 
-
-    public SnakeSegment(int heightLowerBound, int heightUpperBound, int widthLowerBound, int widthUpperBound){
+    SegmentPlacement(int heightLowerBound, int heightUpperBound, int widthLowerBound, int widthUpperBound){
 
         this.x= ThreadLocalRandom.current().nextInt(widthLowerBound, widthUpperBound);
         this.y=ThreadLocalRandom.current().nextInt(heightLowerBound, heightUpperBound);
 
     }
-
-
 }

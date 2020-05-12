@@ -4,9 +4,7 @@ import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.googlecode.lanterna.terminal.swing.SwingTerminal;
-import snake.player.CurrentState;
 import snake.player.Direction;
-import snake.player.SnakeSegment;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,7 +23,7 @@ public class GameField {
 
     private static Screen screen;
 
-    private CurrentState currentState;
+  //  private CurrentState currentState;
 
     private Snake snake;
 
@@ -33,7 +31,7 @@ public class GameField {
 
     private ArrayList<String> field;
 
-    private HashSet<SnakeSegment> walls;
+    private HashSet<SegmentPlacement> walls;
 
     private GenerateFruit generateFruit;
 
@@ -69,26 +67,26 @@ public class GameField {
 
             switch (k.getKind()) {
                 case ArrowUp:
-                    if (!Direction.UP.equals(snake.getDirection().getOppositeDirection())) {
-                        snake.setDirection(Direction.UP);
+                    if (!Direction.UP.equals(snake.getHeadNodeDirection().getOppositeDirection())) {
+                        snake.setHeadNodeDirection(Direction.UP);
                     }
                     break;
 
                 case ArrowDown:
-                    if (!Direction.DOWN.equals(snake.getDirection().getOppositeDirection())) {
-                        snake.setDirection(Direction.DOWN);
+                    if (!Direction.DOWN.equals(snake.getHeadNodeDirection().getOppositeDirection())) {
+                        snake.setHeadNodeDirection(Direction.DOWN);
                     }
                     break;
 
                 case ArrowLeft:
-                    if (!Direction.LEFT.equals(snake.getDirection().getOppositeDirection())) {
-                        snake.setDirection(Direction.LEFT);
+                    if (!Direction.LEFT.equals(snake.getHeadNodeDirection().getOppositeDirection())) {
+                        snake.setHeadNodeDirection(Direction.LEFT);
                     }
                     break;
 
                 case ArrowRight:
-                    if (!Direction.RIGHT.equals(snake.getDirection().getOppositeDirection())) {
-                        snake.setDirection(Direction.RIGHT);
+                    if (!Direction.RIGHT.equals(snake.getHeadNodeDirection().getOppositeDirection())) {
+                        snake.setHeadNodeDirection(Direction.RIGHT);
                     }
                     break;
 
@@ -161,13 +159,13 @@ public class GameField {
 
         boolean isItPearTime = generateFruit.pearTime();
 
-        SnakeSegment currentFruit = generateFruit.getFruitPlacement();
+        SegmentPlacement currentFruit = generateFruit.getFruitPlacement();
         //   int snakeSizeBefore=snake.getBody().size();
         if (currentFruit != null && (!snake.isFruitEaten())) {
             clearFieldSegmentPlacement(currentFruit);
         }
 
-        SnakeSegment place = findPlaceForFruit();
+        SegmentPlacement place = findPlaceForFruit();
         if (!isItPearTime) {
             generateFruit.setCurrentFruitType(Fruit.APPLE);
             generateFruit.setFruitPlacement(place);
@@ -179,19 +177,19 @@ public class GameField {
         }
     }
 
-    private SnakeSegment findPlaceForFruit() {
+    private SegmentPlacement findPlaceForFruit() {
 
         //So apple doesn't spawn on wall
-        SnakeSegment snakeSegment;
+        SegmentPlacement segmentPlacement;
         do {
-            snakeSegment = new SnakeSegment(1, fieldHeight, 1, fieldWidth);
-        } while (isWall(snakeSegment.getX(), snakeSegment.getY()));
+            segmentPlacement = new SegmentPlacement(1, fieldHeight, 1, fieldWidth);
+        } while (isWall(segmentPlacement.getX(), segmentPlacement.getY()));
 
         //So apple doesn't spawn on snake
-        if (snake.getBody().contains(snakeSegment)) {
+        if (snake.getBody().contains(segmentPlacement)) {
             return findPlaceForFruit();
         } else {
-            return snakeSegment;
+            return segmentPlacement;
         }
 
     }
@@ -210,7 +208,7 @@ public class GameField {
         for (String ch : splitStr) {
 
             if (ch.equals(Elements.wallElement)) {
-                walls.add(new SnakeSegment(widthCounter, currHeight));
+                walls.add(new SegmentPlacement(widthCounter, currHeight));
             }
             widthCounter++;
         }
@@ -251,12 +249,12 @@ public class GameField {
         screen.putString(x, y, string, color, null);
     }
 
-    private void clearFieldSegmentPlacement(SnakeSegment snakeSegment) {
+    private void clearFieldSegmentPlacement(SegmentPlacement snakeSegment) {
         drawString(snakeSegment.getX(), snakeSegment.getY(), elements.getGrass(), null);
     }
 
     private boolean isWall(int x, int y) {
-        return walls.contains(new SnakeSegment(x, y));
+        return walls.contains(new SegmentPlacement(x, y));
     }
 
     private void findSnakePlacement() {
@@ -265,9 +263,9 @@ public class GameField {
         int snakeWidth;
 
         do {
-            SnakeSegment snakeSegment = new SnakeSegment(0, fieldHeight, 0, fieldWidth);
-            snakeHeight = snakeSegment.getY();
-            snakeWidth = snakeSegment.getX();
+            SegmentPlacement segmentPlacement = new SegmentPlacement(0, fieldHeight, 0, fieldWidth);
+            snakeHeight = segmentPlacement.getY();
+            snakeWidth = segmentPlacement.getX();
         } while (isWall(snakeWidth, snakeHeight) || isWall(snakeWidth + 1, snakeHeight)
                 || isWall(snakeWidth + 2, snakeHeight)
                 || isWall(snakeWidth - 1, snakeHeight)
@@ -283,22 +281,23 @@ public class GameField {
 
         Direction direction = Direction.values()[new Random().nextInt(Direction.values().length - 2) + 2];
 
-        // System.out.println(direction.toString());
+        // System.out.println(headNodeDirection.toString());
 
         //so you don't get spawned directly ahead of the wall
         if (direction.equals(Direction.LEFT)) {
             for (int i = 0; i < Snake.getSnakeInitialSize(); i++) {
-                body.add(new SnakeSegment(i + snakeWidth, snakeHeight));
+                body.add(new SnakeSegment(i + snakeWidth, snakeHeight,direction));
             }
         } else if (direction.equals(Direction.RIGHT)) {
             for (int i = 0; i < Snake.getSnakeInitialSize(); i++) {
-                body.add(new SnakeSegment(snakeWidth - i, snakeHeight));
+                body.add(new SnakeSegment(snakeWidth - i, snakeHeight,direction));
             }
         }
 
 
         snake = Snake.builder().fieldWidth(fieldWidth).fieldHeight(fieldHeight).body(body).dead(false)
-                .direction(direction).walls(walls).fruit(generateFruit).build();
+               .walls(walls).fruit(generateFruit).build();
+        snake.setHeadNodeDirection(direction);
 
         for (SnakeSegment sp : snake.getBody()) {
             drawString(sp.getX(), sp.getY(), elements.getSnakeElement(), Terminal.Color.CYAN);

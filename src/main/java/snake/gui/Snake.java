@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import snake.player.Direction;
-import snake.player.SnakeSegment;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -21,7 +20,25 @@ public class Snake {
 
     private LinkedList<SnakeSegment> body;
 
-    private Direction direction;
+    Direction getHeadNodeDirection() {
+        return body.getFirst().getDirection();
+    }
+
+    void setHeadNodeDirection(Direction headNodeDirection) {
+       // this.headNodeDirection = headNodeDirection;
+        body.getFirst().setDirection(headNodeDirection);
+    }
+
+   private Direction getTailNodeDirection() {
+        return body.getLast().getDirection();
+    }
+
+   private void setTailNodeDirection(Direction tailNodeDirection) {
+        // this.headNodeDirection = headNodeDirection;
+        body.getLast().setDirection(tailNodeDirection);
+    }
+
+  //  private Direction headNodeDirection;
 
     private boolean dead;
 
@@ -29,16 +46,20 @@ public class Snake {
 
     private int fieldHeight;
 
-    private HashSet<SnakeSegment> walls;
+    private HashSet<SegmentPlacement> walls;
 
     private boolean fruitEaten;
 
     private GenerateFruit fruit;
 
+    private boolean pearEaten;
+
    // private GenerateFruit generateFruit;
 
     // Certain amount of space to be spawned away from a wall
-    private static final int FREE_ROAM = 1;
+   // private static final int FREE_ROAM = 1;
+
+    private static final int SPACING_OF_SNAKE_MOVEMENT =1;
 
     public void killSnake() {
         dead = true;
@@ -52,48 +73,54 @@ public class Snake {
         return body.getLast();
     }
 
-     boolean movement(SnakeSegment currentFruit) {
+     boolean movement(SegmentPlacement currentFruit) {
 
         SnakeSegment head = body.getFirst();
 
+        Direction headNodeDirection=getHeadNodeDirection();
       //  body.removeLast();
 
-        switch (direction) {
+        switch (headNodeDirection) {
 
             case UP:
-                head = new SnakeSegment(head.getX(), head.getY() - 1);
+                head = new SnakeSegment(head.getX(), head.getY() - SPACING_OF_SNAKE_MOVEMENT,headNodeDirection);
                 break;
             case DOWN:
-                head = new SnakeSegment(head.getX(), head.getY() + 1);
+                head = new SnakeSegment(head.getX(), head.getY() + SPACING_OF_SNAKE_MOVEMENT,headNodeDirection);
                 break;
             case LEFT:
-                head = new SnakeSegment(head.getX() - 1, head.getY());
+                head = new SnakeSegment(head.getX() - SPACING_OF_SNAKE_MOVEMENT, head.getY(),headNodeDirection);
                 break;
             case RIGHT:
-                head = new SnakeSegment(head.getX() + 1, head.getY());
+                head = new SnakeSegment(head.getX() + SPACING_OF_SNAKE_MOVEMENT, head.getY(),headNodeDirection);
                 break;
 
             default:
                 throw new IllegalArgumentException("Invalid command, please use arrow keys to operate");
         }
 
-       checkIfFruitEaten(head,currentFruit);
+
+      checkIfFruitEaten(head,currentFruit);
 
 
 
         return checkForDeath(head);
     }
 
-    private void checkIfFruitEaten(SnakeSegment snakeSegment, SnakeSegment currentFruit){
+    private void checkIfFruitEaten(SnakeSegment snakeHead, SegmentPlacement currentFruit){
 
-        if(!(snakeSegment.equals(currentFruit))){
+        if(!(snakeHead.equals(currentFruit))){
             body.removeLast();
-
+            pearEaten=false;
             fruitEaten=false;
         }else {
             if(fruit.getCurrentFruitType().equals(Fruit.PEAR)){
                reverseDirection();
-               body.removeLast();
+               pearEaten=true;
+
+              // body.removeLast();
+              //  body.removeFirst();
+              //  snakeHead=null;
             }
             fruitEaten=true;
             fruit.setFruitPlacement(null);
@@ -102,8 +129,23 @@ public class Snake {
 
     private void reverseDirection(){
 
+
+        //body.getLast().setDirection(body.getLast().getDirection().getOppositeDirection());
+        SnakeSegment prev=null;
+       // setHeadNodeDirection(getHeadNodeDirection().getOppositeDirection());
+        for(SnakeSegment ssg : body){
+           // ssg.setDirection(ssg.getDirection().getOppositeDirection());
+            if(prev!=null) {
+                prev.setDirection(ssg.getDirection().getOppositeDirection());
+            }
+            prev =ssg;
+
+        }
+        setTailNodeDirection(getTailNodeDirection().getOppositeDirection());
+
+
         Collections.reverse(body);
-        setDirection(getDirection().getOppositeDirection());
+        body.removeFirst();
     }
 
 
@@ -113,7 +155,12 @@ public class Snake {
             setDead(true);
           return false;
         }else{
-            body.addFirst(snakeSegment);
+            if(pearEaten) {
+                body.addLast(snakeSegment);
+            }else{
+                body.addFirst(snakeSegment);
+            }
+
             return true;
         }
     }
