@@ -14,6 +14,6 @@ public enum GuiElements {
     private String sign;
 
     GuiElements(String sign) {
-        this.sign=sign;
+        this.sign = sign;
     }
 }

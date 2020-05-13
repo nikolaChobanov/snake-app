@@ -31,7 +31,7 @@ public class Snake {
 
     private boolean pearEaten;
 
-     Direction getHeadNodeDirection() {
+    Direction getHeadNodeDirection() {
         return body.getFirst().getDirection();
     }
 
@@ -51,7 +51,7 @@ public class Snake {
         return INITIAL_SNAKE_SEGMENT_COUNT;
     }
 
-     SnakeSegment getSnakeTail() {
+    SnakeSegment getSnakeTail() {
         return body.getLast();
     }
 
@@ -61,12 +61,11 @@ public class Snake {
      * @param currentFruit - the coordinates for the currently shown fruit
      * @return - validates the new spot and applies effects to the game
      */
-     boolean checkIfMoveIsValid(GenerateFruit currentFruit) {
+    boolean checkIfMoveIsValid(GenerateFruit currentFruit) {
 
         SnakeSegment head = body.getFirst();
 
         Direction headNodeDirection = getHeadNodeDirection();
-        //  body.removeLast();
 
         switch (headNodeDirection) {
 
@@ -118,20 +117,14 @@ public class Snake {
      */
     private void reverseDirection() {
 
-
-        //body.getLast().setDirection(body.getLast().getDirection().getOppositeDirection());
         SnakeSegment prev = null;
-        // setHeadNodeDirection(getHeadNodeDirection().getOppositeDirection());
         for (SnakeSegment ssg : body) {
-            // ssg.setDirection(ssg.getDirection().getOppositeDirection());
             if (prev != null) {
                 prev.setDirection(ssg.getDirection().getOppositeDirection());
             }
             prev = ssg;
-
         }
         setTailNodeDirection(getTailNodeDirection().getOppositeDirection());
-
 
         Collections.reverse(body);
         body.removeFirst();
@@ -154,7 +147,6 @@ public class Snake {
             } else {
                 body.addFirst(snakeSegment);
             }
-
             return true;
         }
     }

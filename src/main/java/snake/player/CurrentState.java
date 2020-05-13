@@ -4,12 +4,14 @@ import com.googlecode.lanterna.input.Key;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.googlecode.lanterna.terminal.swing.SwingTerminal;
-import snake.utils.GenerateFruit;
 import snake.gui.GuiElements;
+import snake.utils.GenerateFruit;
 import snake.utils.SegmentCoordinates;
 import snake.utils.SnakeSegment;
 
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class CurrentState {
@@ -23,6 +25,8 @@ public class CurrentState {
     private Snake snake;
 
     private HashSet<SegmentCoordinates> walls;
+
+    private Logger LOGGER;
     /**
      * Class to handle fruit spawning functionality
      */
@@ -32,6 +36,7 @@ public class CurrentState {
     public CurrentState(SwingTerminal terminal, Screen screen, Snake snake,
                         HashSet<SegmentCoordinates> walls) {
 
+        LOGGER = Logger.getLogger(CurrentState.class.getName());
         swingTerminal = terminal;
         gameScreen = screen;
         this.snake = snake;
@@ -80,6 +85,8 @@ public class CurrentState {
 
 
                 default:
+                    LOGGER.log(Level.WARNING, "User pressed a key different " +
+                            "from the arrow keys");
                     break;
             }
         }
@@ -107,10 +114,12 @@ public class CurrentState {
 
             try {
                 Thread.sleep(300);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "Exception was thrown while thread tried " +
+                        "to simulate movement", e);
             }
         }
+        LOGGER.config("User's game has ended");
     }
 
     /**
@@ -126,7 +135,7 @@ public class CurrentState {
         if (snake.checkIfMoveIsValid(generateFruit)) {
 
             SnakeSegment newHead = snake.getBody().getFirst();
-            drawString(newHead.getX(), newHead.getY(), GuiElements.SNAKE.getSign(), Terminal.Color.CYAN);
+            appendGuiLayer(newHead, GuiElements.SNAKE.getSign(), Terminal.Color.CYAN);
         } else {
 
             for (SnakeSegment sp : snake.getBody()) {
@@ -135,10 +144,11 @@ public class CurrentState {
 
             int x = swingTerminal.getTerminalSize().getColumns() / 2;
             int y = swingTerminal.getTerminalSize().getRows() / 2;
-            drawString(x, y, "GAME", Terminal.Color.CYAN);
-            drawString(x, ++y, "OVER", Terminal.Color.CYAN);
+            appendGuiLayer(new SegmentCoordinates(x, y), "GAME", Terminal.Color.CYAN);
+            appendGuiLayer(new SegmentCoordinates(x, ++y), "OVER", Terminal.Color.CYAN);
         }
         gameScreen.refresh();
+        LOGGER.config("User's screen has updated");
     }
 
     /**
@@ -149,7 +159,6 @@ public class CurrentState {
         boolean isItPearTime = generateFruit.pearTime();
 
         SegmentCoordinates currentFruit = generateFruit.getFruitPlacement();
-        //   int snakeSizeBefore=snake.getBody().size();
         if (currentFruit != null) {
             clearFieldSegmentPlacement(currentFruit);
         }
@@ -158,11 +167,11 @@ public class CurrentState {
         if (!isItPearTime) {
             generateFruit.setCurrentGuiElementsType(GuiElements.APPLE);
             generateFruit.setFruitPlacement(place);
-            drawString(place.getX(), place.getY(), GuiElements.APPLE.getSign(), Terminal.Color.RED);
+            appendGuiLayer(place, GuiElements.APPLE.getSign(), Terminal.Color.RED);
         } else {
             generateFruit.setCurrentGuiElementsType(GuiElements.PEAR);
             generateFruit.setFruitPlacement(place);
-            drawString(place.getX(), place.getY(), GuiElements.PEAR.getSign(), Terminal.Color.MAGENTA);
+            appendGuiLayer(place, GuiElements.PEAR.getSign(), Terminal.Color.MAGENTA);
         }
     }
 
@@ -176,7 +185,7 @@ public class CurrentState {
         SegmentCoordinates segmentCoordinates;
         do {
             segmentCoordinates = new SegmentCoordinates(1, swingTerminal.getTerminalSize().getRows(), 1, swingTerminal.getTerminalSize().getColumns());
-        } while (isWall(segmentCoordinates.getX(), segmentCoordinates.getY()));
+        } while (isWall(segmentCoordinates));
 
         if (snake.getBody().contains(segmentCoordinates)) {
             return findPlaceForFruit();
@@ -192,15 +201,15 @@ public class CurrentState {
      * @param snakeSegment coordinates to the cleared spot snake or fruit.
      */
     private void clearFieldSegmentPlacement(SegmentCoordinates snakeSegment) {
-        drawString(snakeSegment.getX(), snakeSegment.getY(), GuiElements.GRASS.getSign(), null);
+        appendGuiLayer(snakeSegment, GuiElements.GRASS.getSign(), null);
     }
 
-    private void drawString(int x, int y, String string, Terminal.Color color) {
-        gameScreen.putString(x, y, string, color, null);
+    private void appendGuiLayer(SegmentCoordinates segmentCoordinates, String string, Terminal.Color color) {
+        gameScreen.putString(segmentCoordinates.getX(), segmentCoordinates.getY(), string, color, null);
     }
 
-    private boolean isWall(int x, int y) {
-        return walls.contains(new SegmentCoordinates(x, y));
+    private boolean isWall(SegmentCoordinates segmentCoordinates) {
+        return walls.contains(segmentCoordinates);
     }
 
 

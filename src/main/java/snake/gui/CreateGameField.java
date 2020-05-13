@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Random;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CreateGameField {
@@ -28,7 +29,7 @@ public class CreateGameField {
 
     private static SwingTerminal terminal;
 
-    private static Screen screen;
+    private static Screen gameScreen;
     /**
      * HashSet containing all coordinates where a wall segment exists
      */
@@ -42,11 +43,11 @@ public class CreateGameField {
     private CreateGameField(String fieldFileName) {
 
         LOGGER = Logger.getLogger(CreateGameField.class.getName());
-        //  LOGGER = LoggerFactory.getLogger(CreateGameField.class);
         walls = new HashSet<>();
         constructField(fieldFileName);
-        screen.refresh();
-        new CurrentState(terminal, screen, findSnakePlacement(), walls);
+        gameScreen.refresh();
+        LOGGER.config("Game field created");
+        new CurrentState(terminal, gameScreen, findSnakePlacement(), walls);
     }
 
 
@@ -63,9 +64,10 @@ public class CreateGameField {
     private void createGuiScreen() {
 
         terminal = new SwingTerminal(fieldWidth, fieldHeight);
-        screen = new Screen(terminal);
-        screen.startScreen();
+        gameScreen = new Screen(terminal);
+        gameScreen.startScreen();
     }
+
     /**
      * Creating lanterna GUI with the width and height parameters
      * Reading the game field from the file and applying the walls
@@ -77,7 +79,6 @@ public class CreateGameField {
             fieldWidth = Integer.parseInt(br.readLine());
             fieldHeight = Integer.parseInt(br.readLine());
 
-
             createGuiScreen();
 
             String line;
@@ -85,28 +86,27 @@ public class CreateGameField {
 
             while ((line = br.readLine()) != null) {
                 markWalls(line, heightCounter);
-                appendGuiLayer(0, heightCounter++, line, Terminal.Color.YELLOW);
+                appendGuiLayer(new SegmentCoordinates(0, heightCounter++), line, Terminal.Color.YELLOW);
             }
 
         } catch (IOException e) {
-            // LOGGER.log("Error occurred while attempting to read: " + fileName, e);
+            LOGGER.log(Level.SEVERE, "Error occurred while attempting to read: " + fileName, e);
         }
     }
 
     /**
      * Helper function to draw items to the GUI
      *
-     * @param x      - Width
-     * @param y      - Height
-     * @param string - String to be drawn
-     * @param color  - Desired color
+     * @param segmentCoordinates - coordinates of the spot
+     * @param string             - String to be drawn
+     * @param color              - Desired color
      */
-    private void appendGuiLayer(int x, int y, String string, Terminal.Color color) {
-        screen.putString(x, y, string, color, null);
+    private void appendGuiLayer(SegmentCoordinates segmentCoordinates, String string, Terminal.Color color) {
+        gameScreen.putString(segmentCoordinates.getX(), segmentCoordinates.getY(), string, color, null);
     }
 
-    private boolean isWall(int x, int y) {
-        return walls.contains(new SegmentCoordinates(x, y));
+    private boolean isWall(SegmentCoordinates segmentCoordinates) {
+        return walls.contains(segmentCoordinates);
     }
 
     /**
@@ -136,25 +136,28 @@ public class CreateGameField {
 
         int snakeHeight;
         int snakeWidth;
+        SegmentCoordinates segmentCoordinates;
+
 
         do {
-            SegmentCoordinates segmentCoordinates = new SegmentCoordinates(0, fieldHeight, 0, fieldWidth);
+            segmentCoordinates = new SegmentCoordinates(0, fieldHeight, 0, fieldWidth);
             snakeHeight = segmentCoordinates.getY();
             snakeWidth = segmentCoordinates.getX();
-        } while (isWall(snakeWidth, snakeHeight) || isWall(snakeWidth + 1, snakeHeight)
-                || isWall(snakeWidth + 2, snakeHeight)
-                || isWall(snakeWidth - 1, snakeHeight)
-                || isWall(snakeWidth - 2, snakeHeight));
+        } while (isWall(new SegmentCoordinates(snakeWidth, snakeHeight))
+                || isWall(new SegmentCoordinates(snakeWidth + 1, snakeHeight))
+                || isWall(new SegmentCoordinates(snakeWidth + 2, snakeHeight))
+                || isWall(new SegmentCoordinates(snakeWidth - 1, snakeHeight))
+                || isWall(new SegmentCoordinates(snakeWidth - 2, snakeHeight)));
 
 
-        return createSnake(snakeHeight, snakeWidth);
+        return createSnake(segmentCoordinates);
     }
 
     /**
      * Constructing the snake object + drawing it in the GUI
      * and placing it heading the correct direction
      */
-    private Snake createSnake(int snakeHeight, int snakeWidth) {
+    private Snake createSnake(SegmentCoordinates segmentCoordinates) {
 
         LinkedList<SnakeSegment> body = new LinkedList<>();
 
@@ -162,11 +165,11 @@ public class CreateGameField {
 
         if (direction.equals(Direction.LEFT)) {
             for (int i = 0; i < Snake.getSnakeInitialSize(); i++) {
-                body.add(new SnakeSegment(i + snakeWidth, snakeHeight, direction));
+                body.add(new SnakeSegment(i + segmentCoordinates.getX(), segmentCoordinates.getY(), direction));
             }
         } else if (direction.equals(Direction.RIGHT)) {
             for (int i = 0; i < Snake.getSnakeInitialSize(); i++) {
-                body.add(new SnakeSegment(snakeWidth - i, snakeHeight, direction));
+                body.add(new SnakeSegment(segmentCoordinates.getX() - i, segmentCoordinates.getY(), direction));
             }
         }
 
@@ -175,9 +178,9 @@ public class CreateGameField {
         snake.setHeadNodeDirection(direction);
 
         for (SnakeSegment sp : snake.getBody()) {
-            appendGuiLayer(sp.getX(), sp.getY(), GuiElements.SNAKE.getSign(), Terminal.Color.CYAN);
+            appendGuiLayer(sp, GuiElements.SNAKE.getSign(), Terminal.Color.CYAN);
         }
-
+        LOGGER.config("snake built");
         return snake;
     }
 

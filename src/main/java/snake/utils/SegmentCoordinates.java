@@ -12,7 +12,6 @@ class SegmentCoordinates {
 
     //width
     private final int x;
-
     //height
     private final int y;
 
