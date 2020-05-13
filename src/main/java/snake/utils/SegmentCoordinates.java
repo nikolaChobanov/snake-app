@@ -27,6 +27,5 @@ class SegmentCoordinates {
 
         this.x = ThreadLocalRandom.current().nextInt(widthLowerBound, widthUpperBound);
         this.y = ThreadLocalRandom.current().nextInt(heightLowerBound, heightUpperBound);
-
     }
 }

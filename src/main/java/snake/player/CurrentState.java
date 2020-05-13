@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 public class CurrentState {
 
-    private static int TURNS_PASSED_FOR_FRUIT_SPAWN = 20;
+    private static int TURNS_PASSED_FOR_FRUIT_SPAWN = 10;
 
     private static SwingTerminal swingTerminal;
 

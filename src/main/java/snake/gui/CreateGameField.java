@@ -27,7 +27,7 @@ public class CreateGameField {
     //10
     private static int fieldHeight;
 
-    private static SwingTerminal terminal;
+    private static SwingTerminal swingTerminal;
 
     private static Screen gameScreen;
     /**
@@ -47,7 +47,7 @@ public class CreateGameField {
         constructField(fieldFileName);
         gameScreen.refresh();
         LOGGER.config("Game field created");
-        new CurrentState(terminal, gameScreen, findSnakePlacement(), walls);
+        new CurrentState(swingTerminal, gameScreen, findSnakePlacement(), walls);
     }
 
 
@@ -55,7 +55,6 @@ public class CreateGameField {
         return new File(
                 Objects.requireNonNull(getClass().getClassLoader().getResource(fileName)).getFile()
         );
-
     }
 
     /**
@@ -63,8 +62,8 @@ public class CreateGameField {
      */
     private void createGuiScreen() {
 
-        terminal = new SwingTerminal(fieldWidth, fieldHeight);
-        gameScreen = new Screen(terminal);
+        swingTerminal = new SwingTerminal(fieldWidth, fieldHeight);
+        gameScreen = new Screen(swingTerminal);
         gameScreen.startScreen();
     }
 
@@ -138,7 +137,6 @@ public class CreateGameField {
         int snakeWidth;
         SegmentCoordinates segmentCoordinates;
 
-
         do {
             segmentCoordinates = new SegmentCoordinates(0, fieldHeight, 0, fieldWidth);
             snakeHeight = segmentCoordinates.getY();
@@ -148,7 +146,6 @@ public class CreateGameField {
                 || isWall(new SegmentCoordinates(snakeWidth + 2, snakeHeight))
                 || isWall(new SegmentCoordinates(snakeWidth - 1, snakeHeight))
                 || isWall(new SegmentCoordinates(snakeWidth - 2, snakeHeight)));
-
 
         return createSnake(segmentCoordinates);
     }
