@@ -155,7 +155,7 @@ public class CreateGameField {
 
     /**
      * Constructing the snake object + drawing it in the GUI
-     * and placing it heading the correct direction
+     * and placing it heading the correct direction with one additional space ahead of it
      */
     private Snake createSnake(SegmentCoordinates segmentCoordinates) {
 
